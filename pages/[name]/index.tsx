@@ -2,7 +2,7 @@ import { PokemonImage } from '@/components/PokemonImage'
 import { pokemonDetails } from '@/redux/service/pokemonService'
 import { wrapper } from '@/redux/store'
 import { PokemonDetailsState } from '@/redux/types'
-import { Box, Breadcrumbs, Grid2, LinearProgress, Link, Typography } from '@mui/material'
+import { Box, Breadcrumbs, Button, Grid2, LinearProgress, Link, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { NextPageContext } from 'next/types'
 import React from 'react'
@@ -25,7 +25,7 @@ const PokemonName = (props: Props) => {
     <Box p={3}>
       {/* Breadcrume  */}
       <Breadcrumbs>
-        <Link component={Route} underline="hover" color="inherit" href="/">
+        <Link component="button" underline="hover" color="inherit" onClick={() => router.back()}>
           Dashboard
         </Link>
         <Typography color="text.primary" textTransform={'capitalize'}>{name}</Typography>
@@ -50,14 +50,14 @@ const PokemonName = (props: Props) => {
           {/* Pokemon stats   */}
           <Grid2 container spacing={2} mt={3}>
             {data.stats.map((item, i: number) => (
-              <>
+              <React.Fragment key={i}>
                 <Grid2 size={{ xs: 12, sm: 6 }} key={i}>
                   <Typography variant='inherit' textTransform={'capitalize'}>{item.stat.name}: {item.base_stat}</Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, sm: 6 }} key={i}>
                   <LinearProgress variant="buffer" value={item.base_stat} sx={{ borderRadius: 5 }} />
                 </Grid2>
-              </>
+              </React.Fragment>
             ))}
 
           </Grid2>

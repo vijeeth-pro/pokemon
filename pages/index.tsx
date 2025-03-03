@@ -1,18 +1,23 @@
 import { pokemonList } from '@/redux/service/pokemonService'
 import { useAppDispatch, wrapper } from '@/redux/store'
 import { PokemonList, PokemonListState } from '@/redux/types'
-import { Box, IconButton,Typography } from '@mui/material'
+import { Box, IconButton, Typography } from '@mui/material'
 import { DataGrid, GridCallbackDetails, GridColDef, GridPaginationModel, GridRowsProp } from '@mui/x-data-grid'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import ArrowCircleRightRoundedIcon from '@mui/icons-material/ArrowCircleRightRounded';
 import { setQuery } from '@/redux/slice/querySlice'
+import { useSelector } from 'react-redux'
+import { GetServerSideProps } from 'next'
 
 
 //adding PokemonListState as a type
 type Props = {
   res: PokemonListState
-  cookies: any,
+  cookies: {
+    limit: number,
+    next: number,
+  } | null,
 }
 
 
@@ -79,11 +84,13 @@ const TableData = (data: Array<PokemonList>) => [...data].map((item: PokemonList
 //client side
 const index = (props: Props) => {
 
+  const root = useSelector((state: any) => state.query)
+
   //dispatch
   const dispatch = useAppDispatch()
 
   //server side
-  const { res } = props
+  const { res, cookies } = props
   const { data, count } = res
 
   //state
@@ -142,6 +149,7 @@ const index = (props: Props) => {
           pagination: {
             paginationModel: {
               pageSize: 10,
+              page: cookies?.next ?? 0,
             },
           },
         }}
@@ -169,25 +177,27 @@ const index = (props: Props) => {
   )
 }
 
-//from server
-index.getInitialProps = wrapper.getInitialPageProps((store) => async ({ req, res }) => {
+// Server side
+export const getServerSideProps: GetServerSideProps = wrapper.getServerSideProps((store) => async ({ req, res }) => {
+  // const cookies = getCookies({ req, res })
 
-  await store.dispatch(pokemonList({ limit: 10, next: 0 }));
+  const cookie = req?.headers?.cookie
+  const query = cookie?.split('=')[1] ?? ''
+
+  const cookieQuery = query ? JSON.parse(decodeURIComponent(query)) : null
+
+  await store.dispatch(pokemonList(cookieQuery ?? { limit: 10, next: 0 }))
 
   const pokemon = store.getState().pokemon.pokemonList
 
-  // const cookies = getCookies({ req, res }); // Get cookies in server side
-
-  const query = req?.headers?.cookie
- 
-  const decodedData = Buffer.from(query?.split('=')[1] ?? '', 'base64').toString('utf-8');
-
-
   return {
-    res: pokemon,
-    cookies: decodedData,
+    props: {
+      res: pokemon,
+      cookies: cookieQuery,
+    }
   }
-});
+})
+
 
 export default index
 

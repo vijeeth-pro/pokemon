@@ -19,7 +19,11 @@ export const makeStore = wrapMakeStore(() => {
             [query.name]: query.reducer
         },
         middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(nextReduxCookieMiddleware({
-            subtrees: [query.name],
+            subtrees: [{
+                subtree: query.name,
+                ignoreStateFromStaticProps: true,
+                compress: false
+            }],
         }))
     })
 })
